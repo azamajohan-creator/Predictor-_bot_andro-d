@@ -1,0 +1,44 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - principal
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le projet
+        uses: actions/checkout@v4
+
+      - name: Installer Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Donner les permissions à Gradle
+        run: |
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+          fi
+
+      - name: Construire l'APK
+        run: |
+          if [ -f "./gradlew" ]; then
+            ./gradlew assembleDebug
+          else
+            echo "ERREUR : gradlew est introuvable."
+            echo "Le projet Android doit être décompressé dans le dépôt."
+            exit 1
+          fi
+
+      - name: Publier l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CrashAnalyzer-debug
+          path: |
+            **/build/outputs/apk/debug/*.apk
